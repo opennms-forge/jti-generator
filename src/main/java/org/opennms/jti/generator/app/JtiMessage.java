@@ -13,7 +13,7 @@ public class JtiMessage {
     	String interfaceName = "eth0-";
     	Port.GPort.Builder builder = Port.GPort.newBuilder();
 
-    	for(long i=0; i<= numOfInterfaces; i++) {
+    	for(long i=0; i< numOfInterfaces; i++) {
     		InterfaceInfos interfaceInfos = Port.InterfaceInfos.newBuilder()
     		.setIfName(interfaceName + i)
             .setInitTime(1457647123)
@@ -65,15 +65,4 @@ public class JtiMessage {
 
     }
 
-   /* @Ignore
-    @Test
-    public void canSendJtiMessage() throws IOException {
-        TelemetryTop.TelemetryStream jtiMsg = buildJtiMessage("192.168.2.1", "eth0", 100, 100);
-        byte[] jtiMsgBytes = jtiMsg.toByteArray();
-
-        InetAddress address = InetAddressUtils.getLocalHostAddress();
-        DatagramPacket packet = new DatagramPacket(jtiMsgBytes, jtiMsgBytes.length, address, 50000);
-        DatagramSocket socket = new DatagramSocket();
-        socket.send(packet);
-    }*/
 }

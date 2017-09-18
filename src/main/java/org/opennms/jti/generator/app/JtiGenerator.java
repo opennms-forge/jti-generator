@@ -72,7 +72,7 @@ public class JtiGenerator {
 				}
 			}
 		};
-		//Fix me: job exit 
+
 		ScheduledFuture<?> job = scheduler.scheduleAtFixedRate(generateJti, 0, Long.valueOf(numberOfSecs), TimeUnit.SECONDS);
 
 	
@@ -84,7 +84,7 @@ public class JtiGenerator {
 		InetAddress address = InetAddress.getByName("192.168.1.1");
 		IPAddress ipaddress = new IPAddress(address);
 
-		for (long i = 0; i <= numOfNodes; i++) {
+		for (long i = 0; i < numOfNodes; i++) {
 			TelemetryTop.TelemetryStream jtiMsg = JtiMessage.buildJtiMessage(ipaddress.toString(), numOfInterfaces, 100,
 					100);
 
