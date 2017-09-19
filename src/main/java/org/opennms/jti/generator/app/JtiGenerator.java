@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -24,7 +25,8 @@ public class JtiGenerator {
 	JtiGenerator() {
 
 	}
-
+    static int sequenceNumber = 16;
+    
 	public static void main(String[] args) {
 
 		Options options = new Options();
@@ -57,54 +59,52 @@ public class JtiGenerator {
 		final String numberOfNodes = cmd.getOptionValue("nodes");
 		final String numberOfInterfaces = cmd.getOptionValue("interfaces");
 		final String numberOfSecs = cmd.getOptionValue("rate");
-        final String destination = args[args.length-2];
-        final String port = args[args.length-1];
+		final String destination = args[args.length - 2];
+		final String port = args[args.length - 1];
+
 		ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 		Runnable generateJti = new Runnable() {
 			public void run() {
 				JtiGenerator jti = new JtiGenerator();
 				try {
-					jti.generateMessages(Long.valueOf(numberOfNodes), Long.valueOf(numberOfInterfaces), destination, Integer.valueOf(port));
-				} catch (NumberFormatException e) {
-					e.printStackTrace();
-				} catch (UnknownHostException e) {
+					sequenceNumber++;
+					jti.generateMessages(Integer.valueOf(numberOfNodes), Integer.valueOf(numberOfInterfaces), destination,
+							Integer.valueOf(port), sequenceNumber);
+				} catch (NumberFormatException | SocketException | UnknownHostException e) {
 					e.printStackTrace();
 				}
 			}
 		};
 
-		ScheduledFuture<?> job = scheduler.scheduleAtFixedRate(generateJti, 0, Long.valueOf(numberOfSecs), TimeUnit.SECONDS);
+		ScheduledFuture<?> job = scheduler.scheduleAtFixedRate(generateJti, 0, Long.valueOf(numberOfSecs),
+				TimeUnit.SECONDS);
 
-	
 	}
 
-	public void generateMessages(long numOfNodes, long numOfInterfaces,  String destination, int port)
-			throws UnknownHostException {
+	public void generateMessages(int numOfNodes, int numOfInterfaces, String destination, int port, int sequenceNumber)
+			throws UnknownHostException, SocketException {
 
 		InetAddress address = InetAddress.getByName("192.168.1.1");
 		IPAddress ipaddress = new IPAddress(address);
-
-		for (long i = 0; i < numOfNodes; i++) {
+		InetAddress destinationAddr = InetAddress.getByName(destination);
+		DatagramSocket socket = new DatagramSocket();
+		for (int i = 0; i < numOfNodes; i++) {
 			TelemetryTop.TelemetryStream jtiMsg = JtiMessage.buildJtiMessage(ipaddress.toString(), numOfInterfaces, 100,
-					100);
+					100, sequenceNumber);
 
 			byte[] jtiMsgBytes = jtiMsg.toByteArray();
-			InetAddress destinationAddr = InetAddress.getByName(destination);
+
 			DatagramPacket packet = new DatagramPacket(jtiMsgBytes, jtiMsgBytes.length, destinationAddr, port);
-			DatagramSocket socket = null;
+
 			try {
-				socket = new DatagramSocket();
 				socket.send(packet);
 			} catch (IOException e) {
 				e.printStackTrace();
-			} finally {
-				if (socket != null) {
-					socket.close();
-				}
 			}
 
 			ipaddress = ipaddress.incr();
 		}
+		socket.close();
 
 	}
 
