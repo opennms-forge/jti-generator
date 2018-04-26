@@ -8,3 +8,6 @@ target
 .settings
 
 
+# Intellij
+.idea
+*.iml
